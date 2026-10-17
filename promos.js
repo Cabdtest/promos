@@ -147,34 +147,35 @@ window.CICLO = {
   /*
    * Adicionales con beneficio promocional.
    * esquema: meses con % de descuento sobre el precio vigente; después sigue a precio vigente.
-   * soloMop: si el beneficio aplica solo a ciertos medios de pago.
+   * obligatorio: viene siempre incluido en el alta (el vendedor no lo puede quitar).
+ * soloMop: si el beneficio aplica solo a ciertos medios de pago.
    */
   adicionalesPromo: {
     universal: {
       nombre: "Universal+",
       precio: 13400,
-      porDefecto: true,
+      obligatorio: true, // siempre incluido: no se puede destildar en el presupuesto
       esquema: [ { meses: 1, desc: 100 }, { meses: 2, desc: 75 }, { meses: 2, desc: 50 }, { meses: 2, desc: 25 } ],
       texto: "1 mes gratis + 2 meses 75% off + 2 meses 50% off + 2 meses 25% off"
     },
     fullservice: {
       nombre: "Full Service",
       precio: 10520,
-      porDefecto: true,
+      obligatorio: true, // siempre incluido: no se puede destildar en el presupuesto
       esquema: [ { meses: 1, desc: 100 }, { meses: 2, desc: 50 } ],
       texto: "1 mes bonificado + 2 meses 50% off"
     },
     fslite: {
       nombre: "Full Service Lite",
       precio: 2520,
-      porDefecto: true,
+      obligatorio: true, // siempre incluido: no se puede destildar en el presupuesto
       esquema: [ { meses: 1, desc: 100 }, { meses: 2, desc: 50 } ],
       texto: "1 mes bonificado + 2 meses 50% off"
     },
     hotpack: {
       nombre: "Hot Pack",
       precio: 14000,
-      porDefecto: false,
+      obligatorio: false,
       soloMop: ["tc", "naranja"],
       esquema: [ { meses: 1, desc: 100 }, { meses: 2, desc: 50 } ],
       texto: "Con TC, seleccionándolo en la carga: 1 mes gratis + 2 meses 50% off"

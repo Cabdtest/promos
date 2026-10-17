@@ -129,6 +129,9 @@ h3 { font-size: 15px; margin: 0 0 8px; }
 .opt { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
 .opt:has(input:checked) { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 7%, var(--surface)); }
 .opt:has(input:disabled) { opacity: .45; cursor: not-allowed; }
+.opt.fijo, .opt.fijo:has(input:disabled) { opacity: 1; cursor: default; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.opt.fijo input { accent-color: var(--accent); }
+.tag-incl { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; margin-left: 4px; vertical-align: 1px; }
 .opt input { accent-color: var(--brand); width: 18px; height: 18px; margin: 0; }
 .opt .o-main { flex: 1; min-width: 0; }
 .opt .o-main b { display: block; font-size: 14px; }
@@ -510,7 +513,7 @@ details[open].card > summary { margin-bottom: 12px; }
     state.q.plan = id;
     const plan = planById(id);
     state.q.decos = Math.min(state.q.decos, plan.maxDecos);
-    state.q.adic = plan.adicionales.filter(a => C.adicionalesPromo[a].porDefecto);
+    state.q.adic = plan.adicionales.filter(a => C.adicionalesPromo[a].obligatorio);
   }
   setPlan(state.q.plan);
 
@@ -553,9 +556,10 @@ details[open].card > summary { margin-bottom: 12px; }
     }
 
     const disp = adicDisponibles(plan, state.q.mop);
-    state.q.adic = state.q.adic.filter(id => disp.some(a => a.id === id));
-    $("#qAdic").innerHTML = disp.map(a => `<label class="opt"><input type="checkbox" value="${a.id}" ${state.q.adic.includes(a.id) ? "checked" : ""}>
-      <span class="o-main"><b>${esc(a.nombre)}</b><span>${esc(a.texto)}</span></span>
+    // Los obligatorios van siempre; el resto según lo que tilde el vendedor
+    state.q.adic = disp.filter(a => a.obligatorio || state.q.adic.includes(a.id)).map(a => a.id);
+    $("#qAdic").innerHTML = disp.map(a => `<label class="opt ${a.obligatorio ? "fijo" : ""}"><input type="checkbox" value="${a.id}" ${state.q.adic.includes(a.id) ? "checked" : ""} ${a.obligatorio ? "disabled" : ""}>
+      <span class="o-main"><b>${esc(a.nombre)}${a.obligatorio ? ' <span class="tag-incl">Incluido siempre</span>' : ""}</b><span>${esc(a.texto)}</span></span>
       <span class="o-price num">${fmt(a.precio)}</span></label>`).join("");
 
     $("#qPrem").innerHTML = C.premiums.map(p => `<button type="button" class="chip" data-prem="${esc(p.nombre)}" aria-pressed="${state.q.prem.includes(p.nombre)}">${esc(p.nombre)} · ${fmt(p.precio)}</button>`).join("");
@@ -565,6 +569,7 @@ details[open].card > summary { margin-bottom: 12px; }
   $("#qMops").addEventListener("change", e => { state.q.mop = e.target.value; renderAll(); });
   $("#qAdic").addEventListener("change", e => {
     const id = e.target.value;
+    if (C.adicionalesPromo[id].obligatorio) { e.target.checked = true; return; }
     state.q.adic = e.target.checked ? [...state.q.adic, id] : state.q.adic.filter(x => x !== id);
     renderDoc();
   });
