@@ -64,7 +64,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
   background: var(--surface); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .bottom-nav button { border: 0; background: none; padding: 10px 4px 12px; font-size: 12px; color: var(--muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -110,6 +110,8 @@ h3 { font-size: 15px; margin: 0 0 8px; }
   font-weight: 600; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; justify-content: center;
 }
 .btn:hover { border-color: var(--brand); }
+a.btn { color: var(--text); text-decoration: none; }
+a.btn[hidden] { display: none; }
 .btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
 .btn.wa { background: #1fa855; border-color: #1fa855; color: #fff; }
 .btn.wa:hover { background: #178a45; border-color: #178a45; }
@@ -208,6 +210,14 @@ details[open].card > summary { margin-bottom: 12px; }
 .list li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .list li:last-child { border-bottom: 0; }
 .rules li { display: block; }
+.h-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 14px; margin-bottom: 10px; }
+.h-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.h-top b { font-size: 15px; }
+.h-abono { font-weight: 700; white-space: nowrap; }
+.h-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.h-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.h-acts .btn.del { color: var(--muted); margin-left: auto; }
+.h-vacio { text-align: center; padding: 40px 16px; color: var(--muted); }
 
 #printRoot { display: none; }
 @media print {
@@ -316,6 +326,7 @@ details[open].card > summary { margin-bottom: 12px; }
       <div>
         <div class="actions">
           <button class="btn wa" id="btnWaSend"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>Enviar por WhatsApp</button>
+          <a class="btn" id="btnCall" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>Llamar</a>
           <button class="btn" id="btnWa">Copiar mensaje</button>
           <button class="btn" id="btnPdf"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>Guardar PDF</button>
           <button class="btn" id="btnShare" hidden>Compartir</button>
@@ -324,6 +335,16 @@ details[open].card > summary { margin-bottom: 12px; }
         <div class="paper-wrap"><div id="doc"></div></div>
       </div>
     </div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section class="view" id="view-hist" hidden>
+    <div class="toolbar">
+      <h2 style="margin:0;margin-right:auto">Presupuestos enviados</h2>
+      <input class="input" id="hBuscar" placeholder="Buscar por nombre o teléfono…" style="max-width:320px">
+    </div>
+    <p class="small muted" style="margin:-4px 0 12px">Se guardan en este dispositivo al enviar, copiar, compartir o guardar el PDF. Al reenviar o duplicar se usan los precios del ciclo actual.</p>
+    <div id="hLista"></div>
   </section>
 
   <!-- INFO -->
@@ -378,6 +399,7 @@ details[open].card > summary { margin-bottom: 12px; }
   const VIEWS = [
     { id: "promos", nombre: "Promos", icon: '<path d="M3 7h18M3 12h18M3 17h12"/>' },
     { id: "quote", nombre: "Presupuesto", icon: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>' },
+    { id: "hist", nombre: "Historial", icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>' },
     { id: "info", nombre: "Reglas", icon: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>' }
   ];
   $("#tabsTop").innerHTML = VIEWS.map(v => `<button data-view="${v.id}">${v.nombre}</button>`).join("");
@@ -445,11 +467,12 @@ details[open].card > summary { margin-bottom: 12px; }
     }
     const totalInst = decos.reduce((s, d) => s + d.inst, 0);
     const promo = pasos.length > 1 ? pasos[0] : null;
-    return { plan, mop: mopById(mopId), region, pasos, promo, conv, goBox, cant: conv + goBox, decos, adic, prem, totalInst, bonif };
-  }
-
-  function textoAbono(q) {
-    return q.promo ? `${fmt(q.promo.precio)} por ${q.promo.meses} meses` : `${fmt(q.pasos[0].precio)} por mes`;
+    // Lo que paga el cliente por mes: plan + premiums + decos con abono (los bonificados no suman).
+    // Universal+ y Full Service no suman: arrancan bonificados y figuran solo en Beneficios.
+    const abonoTotal = pasos[0].precio
+      + prem.reduce((t, x) => t + x.precio, 0)
+      + decos.filter(d => d.abono != null && !d.bonifMeses).reduce((t, d) => t + d.abono, 0);
+    return { plan, mop: mopById(mopId), region, pasos, promo, conv, goBox, cant: conv + goBox, decos, adic, prem, totalInst, bonif, abonoTotal };
   }
   function textoDecos(q) {
     if (q.cant === 1) return "1 (principal)";
@@ -599,7 +622,7 @@ details[open].card > summary { margin-bottom: 12px; }
   let numero = nuevoNumero();
   function nuevoNumero() {
     const d = new Date(), p = n => String(n).padStart(2, "0");
-    return `P-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+    return `P-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
   }
   $("#btnNuevo").addEventListener("click", () => {
     ["cNombre", "cTel", "cLocalidad", "qObs"].forEach(id => $("#" + id).value = "");
@@ -661,8 +684,7 @@ details[open].card > summary { margin-bottom: 12px; }
           </div>
           <div class="doc-hero-price">
             <div class="lbl">Abono mensual</div>
-            <div class="big num">${fmt(q.pasos[0].precio)}</div>
-            <div class="lbl">${q.promo ? `por ${q.promo.meses} meses` : "por mes"}</div>
+            <div class="big num">${fmt(q.abonoTotal)}</div>
           </div>
         </div>
       </div>
@@ -672,7 +694,6 @@ details[open].card > summary { margin-bottom: 12px; }
         <table><tbody>
           <tr><td>Plan</td><td class="r"><b>${esc(q.plan.nombre)}</b></td></tr>
           <tr><td>Medio de pago</td><td class="r">${esc(q.mop.nombre)}</td></tr>
-          <tr><td>Abono mensual</td><td class="r num"><b>${textoAbono(q)}</b></td></tr>
           <tr><td>Decodificadores</td><td class="r">${textoDecos(q)}</td></tr>
           <tr><td>Apps incluidas</td><td class="r">${q.plan.apps.map(esc).join(" · ")}</td></tr>
           ${q.prem.length ? `<tr><td>Premiums</td><td class="r">${q.prem.map(p => `${esc(p.nombre)} <span class="num">${fmt(p.precio)}/mes</span>`).join("<br>")}</td></tr>` : ""}
@@ -703,6 +724,9 @@ details[open].card > summary { margin-bottom: 12px; }
         </div>
       </div>
     </div>`;
+    const tel = telLlamada(cliente.tel);
+    $("#btnCall").hidden = !tel;
+    if (tel) $("#btnCall").href = "tel:" + tel;
     $("#doc").innerHTML = html;
     $("#printRoot").innerHTML = html;
     state.ultimo = { q, cliente, obs, beneficios, vence };
@@ -720,7 +744,7 @@ details[open].card > summary { margin-bottom: 12px; }
     L.push(`Incluye ${listaY(q.plan.apps)}`);
     L.push(`💳 Pago con ${q.mop.nombre.toLowerCase()}`);
     L.push("");
-    L.push(`💲 *Abono mensual: ${fmt(q.pasos[0].precio)}*${q.promo ? ` por ${q.promo.meses} meses` : ""}`);
+    L.push(`💲 *Abono mensual: ${fmt(q.abonoTotal)}*`);
     L.push(`📦 Decodificadores: ${textoDecos(q)}`);
     q.decos.filter(d => d.abono != null).forEach(d => L.push(`      ▫️ ${d.nombre}: ${textoAbonoDeco(d)}`));
     L.push(`🔧 Instalación: *${q.totalInst === 0 ? "sin cargo" : fmt(q.totalInst)}*`);
@@ -753,22 +777,102 @@ details[open].card > summary { margin-bottom: 12px; }
     return d.length === 10 ? "549" + d : "";
   }
 
+  // Para el botón Llamar: formato internacional si se reconoce, si no los dígitos tal cual
+  function telLlamada(raw) {
+    const w = telWhatsApp(raw);
+    if (w) return "+" + w;
+    return String(raw || "").replace(/[^\d+]/g, "");
+  }
+
   function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 1800); }
 
+  /* ---------- Historial ---------- */
+  const HKEY = "historial";
+  function guardarHistorial() {
+    const { q, cliente, obs } = state.ultimo;
+    const lista = store.get(HKEY, []).filter(h => h.numero !== numero);
+    lista.unshift({
+      numero, fecha: new Date().toISOString(), ciclo: C.mes,
+      cliente, obs,
+      sel: { plan: state.q.plan, mop: state.q.mop, decos: state.q.decos, gobox: state.q.gobox, adic: [...state.q.adic], prem: [...state.q.prem] },
+      planNombre: q.plan.nombre, mopNombre: q.mop.nombre, abono: q.abonoTotal, cant: q.cant
+    });
+    store.set(HKEY, lista.slice(0, 100));
+    renderHist();
+  }
+
+  // Carga un presupuesto guardado en el formulario. nuevo=true lo duplica con otro número.
+  function cargarHistorial(h, nuevo) {
+    if (!planById(h.sel.plan)) { toast("Ese plan ya no existe en este ciclo"); return false; }
+    $("#cNombre").value = h.cliente.nombre || "";
+    $("#cTel").value = h.cliente.tel || "";
+    $("#cLocalidad").value = h.cliente.loc || "";
+    $("#qObs").value = h.obs || "";
+    state.q = { ...h.sel, adic: [...h.sel.adic], prem: h.sel.prem.filter(n => C.premiums.some(p => p.nombre === n)) };
+    numero = nuevo ? nuevoNumero() : h.numero;
+    renderAll();
+    return true;
+  }
+
+  function renderHist() {
+    const f = ($("#hBuscar").value || "").toLowerCase().trim();
+    const fd = f.replace(/\D/g, "");
+    const lista = store.get(HKEY, []).filter(h => !f
+      || (h.cliente.nombre || "").toLowerCase().includes(f)
+      || (fd && (h.cliente.tel || "").replace(/\D/g, "").includes(fd)));
+    if (!lista.length) {
+      $("#hLista").innerHTML = `<div class="h-vacio">${f ? "Sin resultados" : "Todavía no hay presupuestos enviados en este dispositivo."}</div>`;
+      return;
+    }
+    $("#hLista").innerHTML = lista.map(h => {
+      const d = new Date(h.fecha);
+      const tel = telLlamada(h.cliente.tel);
+      return `<div class="h-item">
+        <div class="h-top"><b>${esc(h.cliente.nombre || "Sin nombre")}</b><span class="h-abono num">${fmt(h.abono)}/mes</span></div>
+        <div class="h-sub">${esc(h.planNombre)} · ${esc(h.mopNombre)} · ${h.cant} ${h.cant === 1 ? "deco" : "decos"}</div>
+        <div class="h-sub">${fechaLarga(d)} ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })} · N° ${esc(h.numero)}${h.ciclo !== C.mes ? ` · ciclo ${esc(h.ciclo)}` : ""}${h.cliente.tel ? " · " + esc(h.cliente.tel) : ""}</div>
+        <div class="h-acts">
+          <button class="btn sm wa" data-h="reenviar" data-n="${esc(h.numero)}">Reenviar</button>
+          ${tel ? `<a class="btn sm" href="tel:${esc(tel)}">Llamar</a>` : ""}
+          <button class="btn sm" data-h="duplicar" data-n="${esc(h.numero)}">Duplicar y editar</button>
+          <button class="btn sm del" data-h="borrar" data-n="${esc(h.numero)}">Borrar</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  $("#hBuscar").addEventListener("input", renderHist);
+  $("#hLista").addEventListener("click", e => {
+    const b = e.target.closest("[data-h]"); if (!b) return;
+    const h = store.get(HKEY, []).find(x => x.numero === b.dataset.n); if (!h) return;
+    if (b.dataset.h === "borrar") {
+      if (!confirm(`¿Borrar el presupuesto de ${h.cliente.nombre || "este cliente"}?`)) return;
+      store.set(HKEY, store.get(HKEY, []).filter(x => x.numero !== h.numero));
+      renderHist();
+    } else if (b.dataset.h === "duplicar") {
+      if (cargarHistorial(h, true)) { go("quote"); toast("Copia lista para editar"); }
+    } else if (b.dataset.h === "reenviar") {
+      if (cargarHistorial(h, false)) enviarWhatsApp();
+    }
+  });
+
   $("#btnPdf").addEventListener("click", () => {
+    guardarHistorial();
     const prev = document.title;
     const n = $("#cNombre").value.trim();
     document.title = `Propuesta ${numero}${n ? " - " + n : ""}`;
     window.print();
     setTimeout(() => document.title = prev, 500);
   });
-  $("#btnWaSend").addEventListener("click", () => {
+  function enviarWhatsApp() {
     const tel = telWhatsApp($("#cTel").value);
     if ($("#cTel").value.trim() && !tel) toast("Número no reconocido: elegí el contacto en WhatsApp");
+    guardarHistorial();
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(textoWhatsApp())}`, "_blank", "noopener");
-  });
+  }
+  $("#btnWaSend").addEventListener("click", enviarWhatsApp);
   $("#btnWa").addEventListener("click", async () => {
     const txt = textoWhatsApp();
+    guardarHistorial();
     try { await navigator.clipboard.writeText(txt); toast("Mensaje copiado"); }
     catch {
       const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
@@ -778,7 +882,7 @@ details[open].card > summary { margin-bottom: 12px; }
   });
   if (navigator.share) {
     $("#btnShare").hidden = false;
-    $("#btnShare").addEventListener("click", () => navigator.share({ text: textoWhatsApp() }).catch(() => {}));
+    $("#btnShare").addEventListener("click", () => { guardarHistorial(); navigator.share({ text: textoWhatsApp() }).catch(() => {}); });
   }
 
   /* ---------- Vista Info ---------- */
@@ -795,7 +899,7 @@ details[open].card > summary { margin-bottom: 12px; }
 
   function renderAll() {
     document.querySelectorAll("#regionSeg [data-region]").forEach(b => b.setAttribute("aria-pressed", b.dataset.region === state.region));
-    renderPromos(); renderForm(); renderDoc(); renderInfo();
+    renderPromos(); renderForm(); renderDoc(); renderInfo(); renderHist();
   }
   renderAll();
   go(state.view);
