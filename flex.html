@@ -55,6 +55,7 @@
   .bubble.c{align-self:flex-end;background:#c7f3ff;border-bottom-right-radius:6px}
   .bubble .who{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:2px}
   .bubble b{color:#0b46c9}
+  .bubble,.typing,.visual{scroll-margin-bottom:96px;scroll-margin-top:12px}
   .typing{align-self:flex-start;background:rgba(255,255,255,.85);padding:10px 14px;border-radius:18px;display:flex;gap:5px}
   .typing.c{align-self:flex-end}
   .typing i{width:8px;height:8px;border-radius:50%;background:#6b7fa8;animation:dot 1s infinite}
@@ -395,6 +396,13 @@ const $ = id => document.getElementById(id);
 let cur = 0, timers = [];
 const wait = ms => new Promise(r => timers.push(setTimeout(r, ms)));
 
+// Acompaña la charla: baja la pantalla para que el último globo quede a la vista
+function follow(el){
+  const r = el.getBoundingClientRect(), room = innerHeight - 96;
+  if (r.bottom > room || r.top < 0)
+    el.scrollIntoView({behavior:'smooth', block: r.height > room - 12 ? 'start' : 'end'});
+}
+
 function talking(who){
   $('vend').classList.toggle('talking', who==='v');
   $('cli').classList.toggle('talking', who==='c');
@@ -419,7 +427,7 @@ async function play(i, instant=false){
     if (!instant){
       const t = document.createElement('div');
       t.className = 'typing ' + who; t.innerHTML = '<i></i><i></i><i></i>';
-      $('chat').appendChild(t); talking(null);
+      $('chat').appendChild(t); talking(null); follow(t);
       await wait(550);
       if (play.token !== token) return;
       t.remove();
@@ -430,6 +438,7 @@ async function play(i, instant=false){
     if (instant) b.style.animationDuration = '0s';
     $('chat').appendChild(b);
     talking(who);
+    if (!instant) follow(b);
     if (!instant){
       await wait(Math.min(3200, 900 + text.replace(/<[^>]+>/g,'').length * 32));
       if (play.token !== token) return;
@@ -437,7 +446,7 @@ async function play(i, instant=false){
   }
   talking(null);
   $('visual').innerHTML = s.visual();
-  requestAnimationFrame(()=>$('visual').classList.add('show'));
+  requestAnimationFrame(()=>{ $('visual').classList.add('show'); follow($('visual')); });
 }
 
 SCENES.forEach((_,k)=>{
