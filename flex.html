@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DIRECTV Flex en 9 escenas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#061a4a; --bg2:#0b3aa8; --cyan:#22d3ee; --sky:#7dd3fc; --ink:#0b1b3f;
+    --card:#ffffff; --muted:#5b6b8c; --ok:#16a34a; --warn:#f59e0b; --pink:#f472b6;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:'Nunito',system-ui,sans-serif; color:#fff;
+    background:radial-gradient(1200px 600px at 20% -10%,#1d5bd8 0%,transparent 60%),
+               radial-gradient(900px 500px at 110% 10%,#0e7490 0%,transparent 55%),
+               linear-gradient(160deg,var(--bg1),var(--bg2));
+    background-attachment:fixed; overflow-x:hidden;
+  }
+  .app{max-width:980px;margin:0 auto;padding-block:14px 110px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-height:100%}
+  .disclaimer{margin-top:22px;font-size:12px;color:#a9bde6;text-align:center}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{font-family:'Baloo 2';font-weight:800;font-size:22px;letter-spacing:.5px}
+  .brand span{color:var(--cyan)}
+  .scene-tag{font-size:13px;background:rgba(255,255,255,.12);padding:5px 12px;border-radius:99px;white-space:nowrap}
+
+  h1.title{font-family:'Baloo 2';font-weight:800;font-size:clamp(26px,5vw,40px);margin:10px 0 4px;line-height:1.05}
+  h1.title em{font-style:normal;color:var(--cyan)}
+
+  /* Escenario con personajes */
+  .stage{position:relative;height:190px;margin:6px 0 4px;display:flex;justify-content:space-between;align-items:flex-end}
+  .stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;border-radius:50%;background:rgba(0,0,0,.25);filter:blur(6px)}
+  .char{width:150px;height:190px;position:relative;z-index:1;animation:idle 3s ease-in-out infinite;transform-origin:bottom center;transition:filter .3s}
+  .char.right{animation-delay:-1.5s}
+  .char.talking{animation:talk .45s ease-in-out infinite}
+  .char:not(.talking){filter:saturate(.85) brightness(.92)}
+  .char .mouth-open{display:none}
+  .char.talking .mouth-open{display:block;animation:mouth .25s steps(2) infinite}
+  .char.talking .mouth-closed{display:none}
+  .name{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:800;background:#fff;color:var(--ink);padding:2px 10px;border-radius:99px;white-space:nowrap;z-index:2}
+  @keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes talk{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(-1.5deg)}}
+  @keyframes mouth{0%{opacity:1}100%{opacity:.2}}
+  .props{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);font-size:44px;opacity:.9;animation:idle 2.4s ease-in-out infinite}
+
+  /* Diálogo */
+  .chat{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+  .bubble{max-width:82%;padding:12px 16px;border-radius:20px;font-size:17px;line-height:1.35;font-weight:700;color:var(--ink);
+    box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;transform:translateY(12px) scale(.96);animation:pop .4s cubic-bezier(.2,1.4,.4,1) forwards}
+  .bubble.v{align-self:flex-start;background:#fff;border-bottom-left-radius:6px}
+  .bubble.c{align-self:flex-end;background:#c7f3ff;border-bottom-right-radius:6px}
+  .bubble .who{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:2px}
+  .bubble b{color:#0b46c9}
+  .typing{align-self:flex-start;background:rgba(255,255,255,.85);padding:10px 14px;border-radius:18px;display:flex;gap:5px}
+  .typing.c{align-self:flex-end}
+  .typing i{width:8px;height:8px;border-radius:50%;background:#6b7fa8;animation:dot 1s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  @keyframes dot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-5px);opacity:1}}
+  @keyframes pop{to{opacity:1;transform:none}}
+
+  /* Paneles visuales */
+  .visual{opacity:0;transform:translateY(16px);transition:all .5s ease}
+  .visual.show{opacity:1;transform:none}
+  .card{background:var(--card);color:var(--ink);border-radius:22px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-weight:800;font-size:13px;color:#fff;margin:3px;white-space:nowrap}
+  .p-dsports{background:#16a34a}.p-prime{background:#0ea5e9}.p-dgo{background:#111827}
+  .p-disney{background:#113ccf}.p-hbo{background:#5b21b6}.p-para{background:#0064ff}.p-univ{background:#d4a017;color:#1b1300}
+  .p-vix{background:#f97316}.p-nfl{background:#0b2a6b}.p-hot{background:#dc2626}.p-futbol{background:#e5e7eb;color:#111}
+  .pop-in{opacity:0;transform:scale(.6);animation:popIn .45s cubic-bezier(.2,1.5,.4,1) forwards}
+  @keyframes popIn{to{opacity:1;transform:none}}
+
+  .feature{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed #d6def0;font-weight:700}
+  .feature:last-child{border:0}
+  .feature .ico{font-size:28px;width:40px;text-align:center}
+
+  .plan{border-radius:22px;padding:16px;color:#fff;position:relative;overflow:hidden}
+  .plan.f1{background:linear-gradient(160deg,#1e40af,#0b2a6b)}
+  .plan.f2{background:linear-gradient(160deg,#0891b2,#1e3a8a);outline:3px solid var(--cyan)}
+  .plan h3{font-family:'Baloo 2';font-size:28px;margin:0}
+  .plan .big{font-family:'Baloo 2';font-size:52px;line-height:1;font-weight:800;color:var(--cyan)}
+  .plan .ribbon{position:absolute;top:12px;right:-34px;transform:rotate(35deg);background:var(--warn);color:#1b1300;font-weight:800;font-size:11px;padding:4px 40px}
+  .muted{color:var(--muted);font-size:14px}
+
+  .rule{display:flex;gap:14px;align-items:center}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:220px;flex:none;font-weight:800;font-size:13px;text-align:center}
+  .cal div{padding:6px 0;border-radius:8px;background:#eef3ff}
+  .cal .one{background:var(--ok);color:#fff;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.6)}50%{box-shadow:0 0 0 8px rgba(22,163,74,0)}}
+
+  .rank{counter-reset:r;list-style:none;padding:0;margin:8px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .rank li{counter-increment:r;display:flex;align-items:center;gap:8px;background:#eef3ff;border-radius:12px;padding:6px 8px;font-weight:800;font-size:14px}
+  .rank li::before{content:counter(r);width:24px;height:24px;border-radius:50%;background:#0b46c9;color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+
+  table.where{width:100%;border-collapse:collapse;font-weight:800;font-size:14px}
+  table.where th{font-size:12px;color:var(--muted);text-transform:uppercase;padding:6px 4px}
+  table.where td{padding:6px 4px;text-align:center;border-top:1px solid #e7ecf7}
+  table.where td:first-child{text-align:left}
+  .chk{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:#dcfce7;color:var(--ok);font-size:16px}
+  .no{color:#cbd5e1}
+
+  .seg{display:inline-flex;background:#e8eefc;border-radius:99px;padding:4px;margin-bottom:12px}
+  .seg button{border:0;background:transparent;font:800 14px 'Nunito';padding:8px 16px;border-radius:99px;color:var(--ink);cursor:pointer}
+  .seg button.on{background:#0b46c9;color:#fff}
+  .promo h4{font-family:'Baloo 2';font-size:22px;margin:0 0 2px}
+  .promo .tag{display:inline-block;font-size:12px;font-weight:800;padding:2px 10px;border-radius:99px;background:#fef3c7;color:#92400e;margin-bottom:8px}
+  .price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .price{background:#f1f5ff;border-radius:16px;padding:10px 12px}
+  .price .pl{font-weight:800;font-size:13px;color:var(--muted)}
+  .price .now{font-family:'Baloo 2';font-size:30px;font-weight:800;color:#0b46c9;line-height:1.1}
+  .price .old{text-decoration:line-through;color:#94a3b8;font-weight:700;font-size:14px}
+  .price .off{display:inline-block;background:var(--ok);color:#fff;font-size:12px;font-weight:800;border-radius:99px;padding:1px 8px}
+  .extras{margin-top:10px;font-size:13.5px;font-weight:700;line-height:1.6}
+  .extras span{color:var(--muted)}
+
+  .check{display:flex;gap:12px;align-items:flex-start;padding:10px 0;font-weight:700;font-size:16px}
+  .check .box{width:30px;height:30px;border-radius:9px;background:var(--ok);color:#fff;display:grid;place-items:center;flex:none;font-size:18px}
+  .alert{background:#fff7ed;border:2px solid var(--warn);border-radius:14px;padding:10px 12px;font-weight:800;margin-top:6px}
+  .steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+  .steps span{background:#e0ecff;border-radius:10px;padding:4px 10px;font-size:13px;font-weight:800}
+
+  /* Controles */
+  .controls{position:fixed;left:0;right:0;bottom:0;padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+    background:linear-gradient(transparent,rgba(3,12,40,.9) 35%);display:flex;justify-content:center}
+  .controls .inner{max-width:980px;width:100%;display:flex;align-items:center;gap:10px}
+  .btn{border:0;border-radius:99px;font:800 16px 'Nunito';padding:12px 18px;cursor:pointer;background:rgba(255,255,255,.15);color:#fff}
+  .btn.main{background:var(--cyan);color:#062033;flex:none}
+  .btn:disabled{opacity:.35;cursor:default}
+  .dots{flex:1;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .dots button{width:10px;height:10px;border-radius:99px;border:0;background:rgba(255,255,255,.35);padding:0;cursor:pointer;transition:all .3s}
+  .dots button.on{width:26px;background:var(--cyan)}
+
+  @media (max-width:640px){
+    .stage{height:150px}
+    .char{width:112px;height:150px}
+    .grid2,.price-row{grid-template-columns:1fr}
+    .bubble{font-size:16px;max-width:90%}
+    .rule{flex-direction:column;align-items:flex-start}
+    .rank{grid-template-columns:1fr 1fr}
+    .btn{padding:11px 14px;font-size:15px}
+    .plan .big{font-size:44px}
+    .dots{gap:4px;flex-wrap:nowrap}
+    .dots button{width:7px;height:7px}
+    .dots button.on{width:16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.bubble,.pop-in{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">Capacitación · Plan <span>Flex</span></div>
+    <div class="scene-tag" id="tag">Escena 1 de 9</div>
+  </header>
+  <h1 class="title" id="title"></h1>
+
+  <div class="stage">
+    <div class="char left" id="vend">
+      <svg viewBox="0 0 150 190" width="100%" height="100%">
+        <!-- Sofi, vendedora -->
+        <path d="M30 190 Q30 130 75 125 Q120 130 120 190Z" fill="#0b46c9"/>
+        <path d="M62 128 L75 150 L88 128Z" fill="#fff"/>
+        <rect x="58" y="138" width="34" height="12" rx="3" fill="#22d3ee"/>
+        <text x="75" y="147" text-anchor="middle" font-size="8" font-weight="800" fill="#062033">FLEX</text>
+        <rect x="67" y="108" width="16" height="20" rx="6" fill="#f2c3a0"/>
+        <path d="M40 75 Q38 30 75 28 Q112 30 110 75 L112 115 Q100 105 98 80 L52 80 Q50 105 38 115Z" fill="#4a2511"/>
+        <ellipse cx="75" cy="78" rx="30" ry="34" fill="#f8d0b0"/>
+        <path d="M45 66 Q60 40 105 62 Q95 44 75 42 Q50 44 45 66Z" fill="#4a2511"/>
+        <circle cx="64" cy="78" r="4" fill="#1b1b2f"/><circle cx="86" cy="78" r="4" fill="#1b1b2f"/>
+        <circle cx="65.5" cy="76.5" r="1.3" fill="#fff"/><circle cx="87.5" cy="76.5" r="1.3" fill="#fff"/>
+        <ellipse cx="57" cy="90" rx="5" ry="3" fill="#f9a8b4" opacity=".7"/><ellipse cx="93" cy="90" rx="5" ry="3" fill="#f9a8b4" opacity=".7"/>
+        <path class="mouth-closed" d="M66 94 Q75 101 84 94" stroke="#7a2e1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse class="mouth-open" cx="75" cy="97" rx="8" ry="6" fill="#7a2e1a"/>
+        <!-- headset -->
+        <path d="M44 78 Q44 40 75 40 Q106 40 106 78" stroke="#111827" stroke-width="4" fill="none"/>
+        <rect x="39" y="72" width="10" height="16" rx="4" fill="#111827"/>
+        <path d="M44 88 Q48 102 62 100" stroke="#111827" stroke-width="3" fill="none"/>
+        <circle cx="63" cy="100" r="3" fill="#22d3ee"/>
+      </svg>
+      <div class="name">Sofi · vendedora</div>
+    </div>
+    <div class="props" id="props">📡</div>
+    <div class="char right" id="cli">
+      <svg viewBox="0 0 150 190" width="100%" height="100%">
+        <!-- Don Carlos, cliente -->
+        <path d="M28 190 Q28 128 75 124 Q122 128 122 190Z" fill="#f97316"/>
+        <path d="M60 126 Q75 140 90 126" stroke="#fff" stroke-width="4" fill="none"/>
+        <rect x="67" y="106" width="16" height="20" rx="6" fill="#d9a07a"/>
+        <ellipse cx="75" cy="78" rx="31" ry="34" fill="#e8b48f"/>
+        <path d="M44 70 Q46 38 75 38 Q104 38 106 70 Q98 56 75 54 Q52 56 44 70Z" fill="#9ca3af"/>
+        <ellipse cx="44" cy="82" rx="5" ry="8" fill="#e0a882"/><ellipse cx="106" cy="82" rx="5" ry="8" fill="#e0a882"/>
+        <circle cx="63" cy="78" r="9" fill="none" stroke="#1f2937" stroke-width="2.5"/>
+        <circle cx="87" cy="78" r="9" fill="none" stroke="#1f2937" stroke-width="2.5"/>
+        <path d="M72 78 L78 78" stroke="#1f2937" stroke-width="2.5"/>
+        <circle cx="63" cy="78" r="3.5" fill="#1b1b2f"/><circle cx="87" cy="78" r="3.5" fill="#1b1b2f"/>
+        <path d="M58 66 L68 64 M82 64 L92 66" stroke="#6b7280" stroke-width="3" stroke-linecap="round"/>
+        <path d="M60 96 Q75 90 90 96 Q88 104 75 104 Q62 104 60 96Z" fill="#9ca3af"/>
+        <path class="mouth-closed" d="M68 99 Q75 103 82 99" stroke="#7a2e1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse class="mouth-open" cx="75" cy="101" rx="6" ry="5" fill="#7a2e1a"/>
+        <!-- control remoto -->
+        <rect x="108" y="140" width="12" height="34" rx="5" fill="#111827" transform="rotate(18 114 157)"/>
+        <circle cx="117" cy="146" r="2.5" fill="#ef4444"/>
+      </svg>
+      <div class="name">Don Carlos · cliente</div>
+    </div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+  <div class="visual" id="visual"></div>
+  <p class="disclaimer">Material de capacitación interna para el equipo de ventas. No es una comunicación oficial de DIRECTV.</p>
+</div>
+
+<div class="controls">
+  <div class="inner">
+    <button class="btn" id="prev" aria-label="Escena anterior">◀</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn" id="skip" title="Mostrar todo">⏩</button>
+    <button class="btn main" id="next">Siguiente ▶</button>
+  </div>
+</div>
+
+<script>
+const P = (cls, txt, i=0) => `<span class="pill ${cls} pop-in" style="animation-delay:${i*90}ms">${txt}</span>`;
+const FLEX_OPTS = [['p-disney','Disney+'],['p-hbo','HBO Max'],['p-para','Paramount+'],['p-univ','Universal+'],['p-vix','ViX'],['p-nfl','NFL Game Pass'],['p-hot','Hot Pack Plus']];
+const pills = (list, start=0) => list.map((p,i)=>P(p[0],p[1],start+i)).join('');
+const money = n => '$' + n.toLocaleString('es-AR');
+
+const PRICES = {
+  resto:     {reg:[59110,82960], tc:[44900,55900], wc:[49900,62900]},
+  patagonia: {reg:[67628,94785], tc:[51370,63866], wc:[57091,71866]}
+};
+let zona = 'resto';
+
+function priceCard(){
+  const z = PRICES[zona];
+  const box = (plan,i,promo,off,meses) => `
+    <div class="price">
+      <div class="pl">${plan}</div>
+      <div class="now">${money(z[promo][i])}</div>
+      <div><span class="old">${money(z.reg[i])}</span> <span class="off">-${off}% x ${meses} meses</span></div>
+    </div>`;
+  return `
+    <div class="seg" role="tablist">
+      <button class="${zona==='resto'?'on':''}" onclick="setZona('resto')">Resto País</button>
+      <button class="${zona==='patagonia'?'on':''}" onclick="setZona('patagonia')">Patagonia</button>
+    </div>
+    <div class="grid2">
+      <div class="card promo pop-in">
+        <h4>💳 Promo TC</h4><span class="tag">Tarjeta de crédito</span>
+        <div class="price-row">${box('FLEX 1',0,'tc',24,8)}${box('FLEX 2',1,'tc',30,8)}</div>
+        <div class="extras">🔧 Instalación deco principal: <b>$0</b><br>📺 Deco mirror: <b>$16.500</b><br>📦 GoBox: <b>$0</b> <span>(bonificada x 8 meses)</span></div>
+      </div>
+      <div class="card promo pop-in" style="animation-delay:.15s">
+        <h4>📱 Promo WC/TD</h4><span class="tag">Billetera virtual / Débito</span>
+        <div class="price-row">${box('FLEX 1',0,'wc',15,6)}${box('FLEX 2',1,'wc',24,6)}</div>
+        <div class="extras">🔧 Instalación deco principal: <b>$16.500</b><br>📺 Deco mirror: <b>$16.500</b><br>📦 GoBox: <b>$16.500</b> <span>(mirror bonificado x 6 meses)</span></div>
+      </div>
+    </div>
+    <p class="muted" style="color:#cfe0ff;margin-top:10px">Precio tachado = abono regular. Los flexibles incluidos no cambian la factura.</p>`;
+}
+function setZona(z){ zona = z; document.getElementById('visual').innerHTML = priceCard(); }
+
+const yes = '<span class="chk">✓</span>', no = '<span class="no">—</span>';
+const WHERE = [
+  ['p-prime','Prime Video',0,1,0],['p-dsports','DSports',1,0,1],['p-disney','Disney+',0,1,0],
+  ['p-futbol','Pack Fútbol',1,0,1],['p-hbo','HBO Max',1,1,1],['p-univ','Universal+',1,1,1],
+  ['p-para','Paramount+',0,1,1],['p-hot','Hot Pack Plus',1,'HotGo',0],['p-nfl','NFL Game Pass',0,'DAZN',0],['p-vix','ViX',0,1,0]
+];
+const cell = v => v===1 ? yes : v===0 ? no : `${yes}<div class="muted" style="font-size:11px">${v}</div>`;
+
+const SCENES = [
+  { title:'¿Qué es <em>DIRECTV Flex</em>?', props:'📡',
+    lines:[
+      ['c','Tengo cable, pero miro casi todo en streaming… ¿me conviene seguir?'],
+      ['v','¡Para vos es <b>DIRECTV Flex</b>! TV satelital + las plataformas que <b>vos elegís</b>… y las podés <b>cambiar todos los meses</b>.'],
+      ['c','¿O sea que no pago por cosas que no miro?'],
+      ['v','¡Exacto! Pasamos de “más canales” a <b>más de lo que te gusta</b>.']
+    ],
+    visual:()=>`<div class="card"><div class="grid2" style="grid-template-columns:repeat(3,1fr);text-align:center">
+      <div class="pop-in"><div style="font-size:40px">📺</div><b>Básico</b><div class="muted">+20 canales en vivo</div></div>
+      <div class="pop-in" style="animation-delay:.15s"><div style="font-size:40px">🔒</div><b>Fijos</b><div class="muted">Siempre incluidos</div></div>
+      <div class="pop-in" style="animation-delay:.3s"><div style="font-size:40px">🔄</div><b>Flexibles</b><div class="muted">Los elegís y cambiás</div></div>
+    </div></div>` },
+
+  { title:'¿Qué trae <em>siempre</em>?', props:'🎁',
+    lines:[
+      ['c','¿Y qué viene sí o sí?'],
+      ['v','Todos los Flex traen la <b>grilla básica de +20 canales</b>, <b>DGO</b> y <b>1 deco incluido</b>.'],
+      ['v','Y fijos, sin costo extra: <b>DSports</b> y <b>Prime Video</b>. 🙌'],
+      ['c','¿Y si quiero otra tele en el cuarto?'],
+      ['v','Podés sumar <b>hasta 3 decos adicionales</b>. Y es compatible con <b>GoBox</b>.']
+    ],
+    visual:()=>`<div class="card">
+      <div class="feature"><span class="ico">📺</span>Grilla básica nueva · +20 canales más vistos en vivo</div>
+      <div class="feature"><span class="ico">📲</span>${P('p-dgo','DGO')} para ver en el celu</div>
+      <div class="feature"><span class="ico">🔒</span>Fijos: ${P('p-dsports','DSports',1)}${P('p-prime','Prime Video',2)}</div>
+      <div class="feature"><span class="ico">📦</span>1 deco incluido · hasta 3 adicionales · compatible con GoBox</div>
+    </div>` },
+
+  { title:'<em>Flex 1</em> vs <em>Flex 2</em>', props:'⚖️',
+    lines:[
+      ['c','Vi que hay Flex 1 y Flex 2… ¿cuál es la diferencia?'],
+      ['v','Fácil: en <b>Flex 1</b> elegís <b>1 premium</b>. En <b>Flex 2</b> elegís <b>2</b>.'],
+      ['v','Y Flex 2 suma una opción más: el <b>Pack Fútbol</b>. ⚽']
+    ],
+    visual:()=>`<div class="grid2">
+      <div class="plan f1 pop-in"><h3>FLEX 1</h3><div class="big">x1</div><div>premium flexible a elegir</div>
+        <div style="margin-top:10px">${pills(FLEX_OPTS)}</div></div>
+      <div class="plan f2 pop-in" style="animation-delay:.2s"><div class="ribbon">+ FÚTBOL</div><h3>FLEX 2</h3><div class="big">x2</div><div>premiums flexibles a elegir</div>
+        <div style="margin-top:10px">${pills(FLEX_OPTS,2)}${P('p-futbol','⚽ Pack Fútbol',9)}</div></div>
+    </div>` },
+
+  { title:'¿Y si quiero <em>fútbol</em>?', props:'⚽',
+    lines:[
+      ['c','Yo el fútbol no me lo pierdo. ¿Lo pongo en Flex 1?'],
+      ['v','No, Don Carlos: el <b>Pack Fútbol NO está en Flex 1</b>.'],
+      ['v','Para tenerlo, va <b>Flex 2</b>: fútbol + otro premium a elección. 🏆'],
+      ['c','¡Entonces Flex 2, sin dudas!']
+    ],
+    visual:()=>`<div class="card" style="text-align:center">
+      <div style="font-size:54px" class="pop-in">⚽ ➜ <b style="font-family:'Baloo 2';color:#0b46c9">FLEX 2</b></div>
+      <p style="font-weight:800;margin:6px 0 0">Cliente futbolero = <span style="color:#0b46c9">Flex 2</span> siempre.</p>
+    </div>` },
+
+  { title:'¿Lo puedo <em>cambiar</em>?', props:'🔄',
+    lines:[
+      ['c','¿Y si me aburro de la plataforma que elegí?'],
+      ['v','La cambiás <b>1 vez por mes calendario</b>. 📅'],
+      ['v','Se hace <b>solo desde la app Mi DIRECTV</b>.'],
+      ['v','Ojo: en <b>Flex 2</b>, cuando cambiás, <b>se cambian los dos</b> premiums.']
+    ],
+    visual:()=>`<div class="card rule">
+      <div class="cal">${['L','M','M','J','V','S','D'].map(d=>`<div style="background:none;color:#5b6b8c">${d}</div>`).join('')}
+        <div style="opacity:.3">30</div><div class="one">1</div>${Array.from({length:12},(_,i)=>`<div>${i+2}</div>`).join('')}</div>
+      <div>
+        <div class="feature"><span class="ico">1️⃣</span>Un cambio por mes calendario</div>
+        <div class="feature"><span class="ico">📲</span>Solo por la app Mi DIRECTV</div>
+        <div class="feature"><span class="ico">✌️</span>Flex 2: se cambian ambos</div>
+      </div>
+    </div>` },
+
+  { title:'¿Y si quiero <em>más premiums</em>?', props:'➕',
+    lines:[
+      ['c','¿Y si quiero más de los que trae el plan?'],
+      ['v','En <b>Flex 1</b> tenés dos caminos: si sumás otro premium flex, <b>pasás a Flex 2</b>… o lo agregás <b>a la carta</b> y te quedás en Flex 1.'],
+      ['v','En <b>Flex 2</b> elegís todos los que quieras: <b>2 quedan como flex</b> y el resto se cobra <b>a la carta</b>.'],
+      ['c','¿Y cuáles quedan como flex?'],
+      ['v','Los define este <b>orden de prioridad</b>. 👇']
+    ],
+    visual:()=>`<div class="card"><b>Prioridad para quedar como Flex (Flex 2)</b>
+      <ol class="rank">${['Disney+','ViX','Pack Fútbol','Universal+','Hot Pack Plus','HBO Max','Paramount+','NFL Game Pass']
+        .map((n,i)=>`<li class="pop-in" style="animation-delay:${i*90}ms">${n}</li>`).join('')}</ol>
+    </div>` },
+
+  { title:'¿Dónde lo <em>veo</em>?', props:'📱',
+    lines:[
+      ['c','¿Y todo eso lo veo en la tele?'],
+      ['v','Algunos en el deco, otros en la app o en DGO. Mirá este cuadrito. 👇'],
+      ['v','Importante: hay que <b>generar usuario y contraseña en Mi DIRECTV</b>.']
+    ],
+    visual:()=>`<div class="card"><table class="where">
+      <tr><th>Premium</th><th>📺 Deco</th><th>📲 App</th><th>DGO</th></tr>
+      ${WHERE.map(w=>`<tr><td>${P(w[0],w[1])}</td><td>${cell(w[2])}</td><td>${cell(w[3])}</td><td>${cell(w[4])}</td></tr>`).join('')}
+    </table></div>` },
+
+  { title:'¿Cuánto <em>sale</em>?', props:'💰',
+    lines:[
+      ['c','Bueno… ¿y cuánto sale?'],
+      ['v','¡Tenemos dos promos! Con <b>tarjeta de crédito</b>: hasta <b>30% off por 8 meses</b>.'],
+      ['v','Con <b>billetera virtual o débito</b>: hasta <b>24% off por 6 meses</b>. 💸'],
+      ['c','¡Mostrame los números!']
+    ],
+    visual:()=>priceCard() },
+
+  { title:'<em>Checklist</em> del vendedor', props:'✅',
+    lines:[
+      ['v','¡Venta cerrada! 🎉 Antes de terminar, repasemos el checklist.']
+    ],
+    visual:()=>`<div class="card">
+      <div class="check pop-in"><span class="box">✓</span><div>Generar <b>usuario y contraseña en Mi DIRECTV</b>.<div class="muted">Es lo que necesita el cliente para cambiar flexibles y ver en la app.</div></div></div>
+      <div class="check pop-in" style="animation-delay:.15s"><span class="box">✓</span><div>Carga en <b>SDS</b>, igual que siempre:
+        <div class="steps"><span>Programación FLEX</span>➜<span>Affinity FLEX 1 / FLEX 2</span>➜<span>Pestaña Programación</span>➜<span>Elegir flexibles</span></div></div></div>
+      <div class="check pop-in" style="animation-delay:.3s"><span class="box">✓</span><div>Los flexibles <b>no cambian la factura</b>. Solo suma lo que se agregue <b>a la carta</b>.</div></div>
+      <div class="check pop-in" style="animation-delay:.45s"><span class="box">✓</span><div>¿Quiere fútbol? ➜ <b>Flex 2</b>.</div></div>
+      <div class="alert">⚠️ Cambio de flexibles: 1 por mes calendario, solo desde la app Mi DIRECTV.</div>
+    </div>` }
+];
+
+const $ = id => document.getElementById(id);
+let cur = 0, timers = [];
+const wait = ms => new Promise(r => timers.push(setTimeout(r, ms)));
+
+function talking(who){
+  $('vend').classList.toggle('talking', who==='v');
+  $('cli').classList.toggle('talking', who==='c');
+}
+
+async function play(i, instant=false){
+  timers.forEach(clearTimeout); timers = [];
+  const token = Symbol(); play.token = token;
+  cur = i;
+  const s = SCENES[i];
+  $('title').innerHTML = s.title;
+  $('tag').textContent = `Escena ${i+1} de ${SCENES.length}`;
+  $('props').textContent = s.props;
+  $('chat').innerHTML = '';
+  $('visual').classList.remove('show'); $('visual').innerHTML = '';
+  $('prev').disabled = i===0;
+  $('next').textContent = i===SCENES.length-1 ? '↺ Empezar' : 'Siguiente ▶';
+  [...$('dots').children].forEach((d,k)=>d.classList.toggle('on',k===i));
+  window.scrollTo({top:0,behavior:instant?'auto':'smooth'});
+
+  for (const [who, text] of s.lines){
+    if (!instant){
+      const t = document.createElement('div');
+      t.className = 'typing ' + who; t.innerHTML = '<i></i><i></i><i></i>';
+      $('chat').appendChild(t); talking(null);
+      await wait(550);
+      if (play.token !== token) return;
+      t.remove();
+    }
+    const b = document.createElement('div');
+    b.className = 'bubble ' + who;
+    b.innerHTML = `<span class="who">${who==='v'?'Sofi':'Don Carlos'}</span>${text}`;
+    if (instant) b.style.animationDuration = '0s';
+    $('chat').appendChild(b);
+    talking(who);
+    if (!instant){
+      await wait(Math.min(3200, 900 + text.replace(/<[^>]+>/g,'').length * 32));
+      if (play.token !== token) return;
+    }
+  }
+  talking(null);
+  $('visual').innerHTML = s.visual();
+  requestAnimationFrame(()=>$('visual').classList.add('show'));
+}
+
+SCENES.forEach((_,k)=>{
+  const d = document.createElement('button');
+  d.setAttribute('aria-label','Ir a escena '+(k+1));
+  d.onclick = ()=>play(k);
+  $('dots').appendChild(d);
+});
+$('next').onclick = ()=>play(cur===SCENES.length-1 ? 0 : cur+1);
+$('prev').onclick = ()=>cur>0 && play(cur-1);
+$('skip').onclick = ()=>play(cur,true);
+document.addEventListener('keydown',e=>{
+  if (e.key==='ArrowRight') $('next').click();
+  if (e.key==='ArrowLeft') $('prev').click();
+});
+let tx=null;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{
+  if (tx===null) return;
+  const dx = e.changedTouches[0].clientX - tx; tx=null;
+  if (Math.abs(dx)>70 && !e.target.closest('.seg')) dx<0 ? $('next').click() : $('prev').click();
+});
+play(0);
+</script>
+</body>
+</html>
