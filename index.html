@@ -253,7 +253,6 @@ details[open].card > summary { margin-bottom: 12px; }
   <section class="view" id="view-promos">
     <div class="toolbar">
       <h2 style="margin:0;margin-right:auto">Promos del mes</h2>
-      <label class="chk"><input type="checkbox" id="riesgoPromos"> Score riesgo alto / viajante (solo TC)</label>
     </div>
     <div id="planes"></div>
   </section>
@@ -276,7 +275,6 @@ details[open].card > summary { margin-bottom: 12px; }
           <div class="field">
             <div class="lbl">Medio de pago</div>
             <div class="opts" id="qMops"></div>
-            <label class="chk small" style="margin-top:8px"><input type="checkbox" id="qRiesgo"> Score riesgo alto / viajante (solo TC)</label>
           </div>
 
           <div class="field">
@@ -382,6 +380,8 @@ details[open].card > summary { margin-bottom: 12px; }
   const mopById = id => C.mops.find(m => m.id === id);
   // Medios de pago de un plan: solo los que tiene cargados en promos (ej. Flex no tiene efectivo)
   const mopsDe = plan => C.mops.filter(m => plan.promos[m.id]);
+  // Premiums que se pueden sumar a un plan: los que el plan no trae incluidos
+  const premiumsDe = plan => C.premiums.filter(p => !plan.apps.includes(p.nombre));
   const REGIONES = C.regiones.filter(r => r.activa !== false);
   const regionNombre = id => C.regiones.find(r => r.id === id).nombre;
   const fechaLarga = d => d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -389,7 +389,6 @@ details[open].card > summary { margin-bottom: 12px; }
   const state = {
     view: store.get("view", "promos"),
     region: store.get("region", "resto"),
-    riesgo: false,
     q: { plan: "oro", mop: "tc", decos: 1, gobox: 0, adic: null, prem: [] }
   };
 
@@ -449,7 +448,7 @@ details[open].card > summary { margin-bottom: 12px; }
     const goBox = gb ? state.q.gobox : 0;
     const conv = Math.min(state.q.decos, plan.maxDecos - goBox);
     const adic = adicDisponibles(plan, mopId).filter(a => state.q.adic.includes(a.id));
-    const prem = C.premiums.filter(p => state.q.prem.includes(p.nombre));
+    const prem = premiumsDe(plan).filter(p => state.q.prem.includes(p.nombre));
     const bonif = pr.bonifAbonoDeco;
 
     // Cada equipo con su instalación y su abono mensual (el principal va incluido en el abono del plan)
@@ -487,7 +486,6 @@ details[open].card > summary { margin-bottom: 12px; }
   }
 
   /* ---------- Vista Promos ---------- */
-  $("#riesgoPromos").addEventListener("change", e => { state.riesgo = e.target.checked; $("#qRiesgo").checked = state.riesgo; renderAll(); });
 
   function renderPromos() {
     const r = state.region;
@@ -502,23 +500,20 @@ details[open].card > summary { margin-bottom: 12px; }
           ${mopsDe(plan).map(mop => {
             const pasos = pasosPlan(plan, mop.id, r);
             const pr = promoDe(plan, mop.id);
-            const off = state.riesgo && !mop.riesgoAlto;
             const tienePromo = pasos.length > 1;
             const p0 = pasos[0];
             return `
-            <div class="mop ${off ? "disabled" : ""}">
-              <div class="mop-label"><span>${esc(mop.nombre)}</span>${off ? "<span>No aplica</span>" : ""}</div>
+            <div class="mop">
+              <div class="mop-label"><span>${esc(mop.nombre)}</span></div>
               <div class="price num">${fmt(p0.precio)} <small>/mes</small></div>
               <div>${tienePromo
                 ? `<span class="badge">${p0.desc === "Congelado" ? "Precio congelado" : "-" + esc(p0.desc)}</span> <span class="small muted">x ${p0.meses} meses</span>`
                 : `<span class="badge neutral">Precio de lista</span>`}</div>
-              ${tienePromo ? `<ul class="steps">
-                ${pasos.slice(1).map((s, i) => s.meses
-                  ? `<li>Luego <b class="num">${fmt(s.precio)}</b> x ${s.meses} meses (-${esc(s.desc)})</li>`
-                  : `<li>Después <b class="num">${fmt(s.precio)}</b></li>`).join("")}
+              ${pasos.length > 2 ? `<ul class="steps">
+                ${pasos.slice(1, -1).map(s => `<li>Luego <b class="num">${fmt(s.precio)}</b> x ${s.meses} meses (-${esc(s.desc)})</li>`).join("")}
               </ul>` : ""}
               <div class="decos">${esc(pr.textoDecos || "")}</div>
-              ${off ? "" : `<button class="btn sm" data-cotizar="${plan.id}|${mop.id}">Cotizar →</button>`}
+              <button class="btn sm" data-cotizar="${plan.id}|${mop.id}">Cotizar →</button>
             </div>`;
           }).join("")}
         </div>
@@ -543,7 +538,6 @@ details[open].card > summary { margin-bottom: 12px; }
   function renderForm() {
     const r = state.region, plan = planById(state.q.plan);
     if (!mopsDe(plan).some(m => m.id === state.q.mop)) state.q.mop = "tc";
-    if (state.riesgo && !mopById(state.q.mop).riesgoAlto) state.q.mop = "tc";
 
     $("#qPlanes").innerHTML = C.planes.map(p => {
       const p0 = pasosPlan(p, p.promos[state.q.mop] ? state.q.mop : "tc", r)[0];
@@ -553,10 +547,9 @@ details[open].card > summary { margin-bottom: 12px; }
     }).join("");
 
     $("#qMops").innerHTML = mopsDe(plan).map(m => {
-      const dis = state.riesgo && !m.riesgoAlto;
       const p0 = pasosPlan(plan, m.id, r)[0];
       const tiene = plan.promos[m.id] && plan.promos[m.id].tramos.length;
-      return `<label class="opt"><input type="radio" name="qmop" value="${m.id}" ${m.id === state.q.mop ? "checked" : ""} ${dis ? "disabled" : ""}>
+      return `<label class="opt"><input type="radio" name="qmop" value="${m.id}" ${m.id === state.q.mop ? "checked" : ""}>
         <span class="o-main"><b>${esc(m.nombre)}</b><span>${tiene ? `${p0.desc === "Congelado" ? "Congelado" : "-" + p0.desc} x ${p0.meses} meses` : "Sin promo"}</span></span>
         <span class="o-price num">${fmt(p0.precio)}</span></label>`;
     }).join("");
@@ -585,7 +578,8 @@ details[open].card > summary { margin-bottom: 12px; }
       <span class="o-main"><b>${esc(a.nombre)}${a.obligatorio ? ' <span class="tag-incl">Incluido siempre</span>' : ""}</b><span>${esc(a.texto)}</span></span>
       <span class="o-price num">${fmt(a.precio)}</span></label>`).join("");
 
-    $("#qPrem").innerHTML = C.premiums.map(p => `<button type="button" class="chip" data-prem="${esc(p.nombre)}" aria-pressed="${state.q.prem.includes(p.nombre)}">${esc(p.nombre)} · ${fmt(p.precio)}</button>`).join("");
+    state.q.prem = state.q.prem.filter(n => premiumsDe(plan).some(p => p.nombre === n));
+    $("#qPrem").innerHTML = premiumsDe(plan).map(p => `<button type="button" class="chip" data-prem="${esc(p.nombre)}" aria-pressed="${state.q.prem.includes(p.nombre)}">${esc(p.nombre)} · ${fmt(p.precio)}</button>`).join("");
   }
 
   $("#qPlanes").addEventListener("change", e => { setPlan(e.target.value); renderAll(); });
@@ -607,7 +601,6 @@ details[open].card > summary { margin-bottom: 12px; }
   $("#decoMas").addEventListener("click", () => { state.q.decos = Math.min(planById(state.q.plan).maxDecos - state.q.gobox, state.q.decos + 1); renderForm(); renderDoc(); });
   $("#gbMenos").addEventListener("click", () => { state.q.gobox = Math.max(0, state.q.gobox - 1); renderForm(); renderDoc(); });
   $("#gbMas").addEventListener("click", () => { state.q.gobox = Math.min(planById(state.q.plan).maxDecos - state.q.decos, state.q.gobox + 1); renderForm(); renderDoc(); });
-  $("#qRiesgo").addEventListener("change", e => { state.riesgo = e.target.checked; $("#riesgoPromos").checked = state.riesgo; renderAll(); });
   ["cNombre", "cTel", "cLocalidad", "qObs"].forEach(id => $("#" + id).addEventListener("input", renderDoc));
 
   // Datos del vendedor

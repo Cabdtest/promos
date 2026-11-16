@@ -117,9 +117,9 @@ window.CICLO = {
     {
       id: "flex2",
       nombre: "Flex 2",
-      bajada: "+ Dsports y Amazon Prime Video",
+      bajada: "+ Dsports, Fútbol Argentino y Amazon Prime Video",
       incluye: ["Señal HD"],
-      apps: ["Dsports", "Amazon Prime Video", "DGO"],
+      apps: ["Dsports", "Fútbol Argentino", "Amazon Prime Video", "DGO"], // Fútbol Argentino incluido: no se ofrece como premium aparte,
       precio: { resto: 82960, patagonia: 94785, tdf: 78335 },
       maxDecos: 4,
       adicionales: ["fullservice"],
@@ -244,14 +244,13 @@ window.CICLO = {
     "Los proporcionales están bonificados para todas las altas.",
     "Score con riesgo alto: no ingresa por EF, Wallet Connect ni TD. Solo TC.",
     "La promo con TC aplica a todos los scores, sujeta a mantener la tarjeta como medio de pago.",
-    "Vendedores viajantes: solo pueden vender promociones con TC.",
     "Flex 1 y Flex 2: solo con TC o Wallet Connect / Débito (no se venden en efectivo). Incluyen Dsports.",
     "Máximo 4 decodificadores por cuenta. En Super Lite, el 3° y 4° no aplican.",
     "Instalación de cada deco: $16.500 (salvo los bonificados de cada promo).",
     "Abono mensual de cada mirror o Go Box: $12.720 (Resto País).",
     "Go Box (deco Android para TV no Smart): solo ORO HD con TC. Se suma como deco adicional, no reemplaza al principal. Instalación $16.500 + $12.720/mes, sin bonificación.",
     "Hot Pack (Super Lite y ORO HD con TC): lo marca el vendedor en la carga si el cliente lo quiere.",
-    "Amazon Prime Video y DGO incluidos en todos los planes y con todos los medios de pago. Disney+ en ORO HD y ORO Plus HD. Dsports en Flex.",
+    "Amazon Prime Video y DGO incluidos en todos los planes y con todos los medios de pago. Disney+ en ORO HD y ORO Plus HD. Dsports en Flex 1 y Flex 2. Fútbol Argentino incluido en Flex 2.",
     "Las promociones están sujetas a aumentos de precio."
   ],
 
