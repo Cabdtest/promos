@@ -27,12 +27,11 @@ Solo se edita **`promos.js`**:
 
 Precios sin puntos ni signo `$`.
 
-## Datos a verificar en Octubre 2026
+## Criterios del ciclo Noviembre 2026
 
-El PDF tiene inconsistencias; se tomó lo siguiente:
-
-- **ORO Plus HD con TC**: confirmado $75.500 x 5 meses (precio comercial; el PDF dice "-40%", se muestra "-45%" que es lo que equivale sobre la lista).
-- **ORO HD con TC**: confirmado 75% x 12 meses. La promo 60% x 6m + 30% x 6m es exclusiva de **Tarjeta Naranja** (medio de pago aparte, solo ORO HD, mismos decos que cualquier tarjeta).
-- **Decos de ORO / Plus con TC**: la grilla es ambigua. Se interpretó: principal y 2° sin cargo, 3° y 4° $15.000, y en ORO HD el 2° deco tiene el abono bonificado 12 meses.
-- **Universal+ (1 mes gratis + 75/50/25%)**: se asumió que el beneficio escalonado corresponde a Universal+ ($13.400).
-- **Abono de deco adicional ($11.950)**: el PDF lo indica para Resto País; se usó el mismo valor para Patagonia y TDF.
+- **Porcentajes**: se muestra el % que comunica la empresa (ej. Super Lite TC "35%"), aunque el precio real equivalga a otro (39,7%). El precio es el dato que manda.
+- **Promos solo para Resto País**: los tramos tienen precio solo en `resto`. Patagonia y TDF están desactivadas; para activarlas hay que cargar sus precios promocionales.
+- **Flex 1 y Flex 2**: solo TC y WC/TD (sin efectivo). El 2° deco paga instalación $16.500 y tiene el abono de $12.720 bonificado 8 meses (TC) o 6 meses (WC/TD).
+- **Medios de pago por plan**: cada plan muestra solo los medios que tiene cargados en `promos`.
+- **Abono mensual del presupuesto**: plan + premiums + decos con abono no bonificado. Universal+ y Full Service no suman (figuran en Beneficios).
+- Se quitaron la Tarjeta Naranja y el segundo tramo del 20% de Super Lite.

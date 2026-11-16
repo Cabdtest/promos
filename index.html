@@ -380,8 +380,8 @@ details[open].card > summary { margin-bottom: 12px; }
   };
   const planById = id => C.planes.find(p => p.id === id);
   const mopById = id => C.mops.find(m => m.id === id);
-  // Medios de pago de un plan: los generales + los que solo existen si el plan tiene esa promo (ej. Naranja)
-  const mopsDe = plan => C.mops.filter(m => !m.soloConPromo || plan.promos[m.id]);
+  // Medios de pago de un plan: solo los que tiene cargados en promos (ej. Flex no tiene efectivo)
+  const mopsDe = plan => C.mops.filter(m => plan.promos[m.id]);
   const REGIONES = C.regiones.filter(r => r.activa !== false);
   const regionNombre = id => C.regiones.find(r => r.id === id).nombre;
   const fechaLarga = d => d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -496,7 +496,7 @@ details[open].card > summary { margin-bottom: 12px; }
         <div class="plan-head">
           <div><h3>${esc(plan.nombre)}</h3><div class="small muted">${esc(plan.bajada)}</div></div>
           <div class="lista">Precio de lista <b class="num">${fmt(plan.precio[r])}</b></div>
-          <div class="apps">${plan.apps.map(a => `<span>✓ ${esc(a)}${a === "DGO" ? " incluido" : ""}</span>`).join("")}<span class="apps-note">Con todos los medios de pago</span></div>
+          <div class="apps">${plan.apps.map(a => `<span>✓ ${esc(a)}${a === "DGO" ? " incluido" : ""}</span>`).join("")}<span class="apps-note">Incluidas en todas las promos</span></div>
         </div>
         <div class="mop-grid" style="--n:${mopsDe(plan).length}">
           ${mopsDe(plan).map(mop => {
@@ -546,7 +546,7 @@ details[open].card > summary { margin-bottom: 12px; }
     if (state.riesgo && !mopById(state.q.mop).riesgoAlto) state.q.mop = "tc";
 
     $("#qPlanes").innerHTML = C.planes.map(p => {
-      const p0 = pasosPlan(p, state.q.mop, r)[0];
+      const p0 = pasosPlan(p, p.promos[state.q.mop] ? state.q.mop : "tc", r)[0];
       return `<label class="opt"><input type="radio" name="qplan" value="${p.id}" ${p.id === state.q.plan ? "checked" : ""}>
         <span class="o-main"><b>${esc(p.nombre)}</b><span>${esc(p.bajada)}</span></span>
         <span class="o-price num">${fmt(p0.precio)}</span></label>`;
