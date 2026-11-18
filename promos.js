@@ -70,7 +70,8 @@ window.CICLO = {
       adicionales: ["universal", "fullservice", "hotpack"],
       promos: {
         tc: {
-          tramos: [ { meses: 12, desc: "70%", precio: { resto: 34900 } } ],
+          // Precio especial vigente hasta el 01/12/2026 (antes $34.900 / 70%)
+          tramos: [ { meses: 12, desc: "75%", precio: { resto: 29900 } } ],
           instalacion: [0, 0, 16500, 16500],
           bonifAbonoDeco: { deco: 2, meses: 12 }, // 2do deco convencional con abono bonificado 100% x 12m
           // Go Box (deco Android para TV no Smart): se suma como adicional, nunca es el principal. Sin bonificación.
